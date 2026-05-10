@@ -1,7 +1,12 @@
 <template>
   <div class="star-entrance-bg">
     <b-jumbotron header="Welcome to a brief background survey!" header-level="4" class="mb-4 shadow-lg entrance-jumbotron">
-      <div class="content-area bg-white p-4 rounded-lg entrance-content">
+      <div v-if="!identityValid" class="content-area bg-white p-4 rounded-lg entrance-content">
+        <b-alert variant="warning" show class="mb-0">
+          We could not verify your Prolific study link. Please return to Prolific and reopen the study from the original invitation.
+        </b-alert>
+      </div>
+      <div v-else class="content-area bg-white p-4 rounded-lg entrance-content">
         <p class="entrance-section-title">
           This short survey is designed to understand your experience with and perception of artificial intelligence. It will take a few minutes to complete.
           <br>
@@ -217,6 +222,7 @@ export default {
       worker_id: null,
       study_id: null,
       session_id: null,
+      identityValid: false,
       test_moderator_code: null,
       test_participant_code: null,
       test_policy_number: null,
@@ -296,17 +302,18 @@ export default {
       }
 
       this.$store.commit('assign_platform', {platform: this.platform})
-      let prolificArray = url.split('?')[1].split('&')
-      this.worker_id = prolificArray[0].split('=')[1]
-      this.study_id = prolificArray[1].split('=')[1]
-      this.session_id = prolificArray[2].split('=')[1]
-      this.test = prolificArray[3] ? prolificArray[3].split('=')[1] : 'N'
+      const params = new URL(url).searchParams
+      this.worker_id = params.get('worker_id') || params.get('PROLIFIC_PID')
+      this.study_id = params.get('study_id') || params.get('STUDY_ID')
+      this.session_id = params.get('session_id') || params.get('SESSION_ID')
+      this.identityValid = Boolean(this.worker_id && this.study_id && this.session_id)
+      this.test = params.get('test') || params.get('TEST') || 'N'
       console.log('Test:', this.test)
       if (this.test === 'Y') {
-        this.test_moderator_code = prolificArray[4] ? prolificArray[4].split('=')[1] : 0
-        this.test_participant_code = prolificArray[5] ? prolificArray[5].split('=')[1] : 1
-        this.test_policy_number = prolificArray[6] ? prolificArray[6].split('=')[1] : 1
-        this.test_turn_number = prolificArray[7] ? prolificArray[7].split('=')[1] : 1
+        this.test_moderator_code = params.get('test_moderator_code') || params.get('TEST_MODERATOR_CODE') || 0
+        this.test_participant_code = params.get('test_participant_code') || params.get('TEST_PARTICIPANT_CODE') || 1
+        this.test_policy_number = params.get('test_policy_number') || params.get('TEST_POLICY_NUMBER') || 1
+        this.test_turn_number = params.get('test_turn_number') || params.get('TEST_TURN_NUMBER') || 1
       }
     },
     validateForm () {
@@ -330,6 +337,10 @@ export default {
       if (!this.validateForm()) return
 
       try {
+        if (!this.identityValid) {
+          this.$alert('We could not get your Prolific ID information, please return the HIT.', '', 'warning')
+          return
+        }
         // First create subject
         let body = new FormData()
         if (typeof this.worker_id === 'undefined' || this.worker_id === null || this.worker_id === '') {
