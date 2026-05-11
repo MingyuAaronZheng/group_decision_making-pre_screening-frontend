@@ -50,16 +50,10 @@ library.add(faGavel)
 library.add(faRobot)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
-// // Add global properties
-// Vue.prototype.$server_url = 'https://gobackend.discussionexperiment.com/ccw/api/'
-// Vue.prototype.$ws_url = 'wss://gobackend.discussionexperiment.com/ws/chat/'
-// Vue.prototype.$chat_url = 'wss://gobackend.discussionexperiment.com/ws/chat/'
-// Vue.prototype.$test_mode = false
-
-// Vue.prototype.$server_url = 'http://127.0.0.1:8000/ccw/api/'
-// Vue.prototype.$ws_url = 'ws://127.0.0.1:8000/ws/chat/'
-// Vue.prototype.$chat_url = 'ws://127.0.0.1:8000/ws/chat/'
-// Vue.prototype.$test_mode = true
+const LOCAL_API_BASE_URL = 'http://127.0.0.1:8000/ccw/api/'
+const LOCAL_WS_BASE_URL = 'ws://127.0.0.1:8000/ws/chat/'
+const PRODUCTION_API_BASE_URL = process.env.VUE_APP_API_BASE_URL || 'https://api-prescreen.discussionexperiment.com/ccw/api/'
+const PRODUCTION_WS_BASE_URL = process.env.VUE_APP_WS_BASE_URL || 'wss://api-prescreen.discussionexperiment.com/ws/chat/'
 
 const store = new Vuex.Store({
   // plugins: [createPersistedState({
@@ -253,14 +247,14 @@ const store = new Vuex.Store({
     assign_platform (state, payload) {
       state.platform = payload.platform
       if (state.platform === 'localhost') {
-        Vue.prototype.$server_url = 'http://127.0.0.1:8000/ccw/api/'
-        Vue.prototype.$ws_url = 'ws://127.0.0.1:8000/ws/chat/'
-        Vue.prototype.$chat_url = 'ws://127.0.0.1:8000/ws/chat/'
+        Vue.prototype.$server_url = LOCAL_API_BASE_URL
+        Vue.prototype.$ws_url = LOCAL_WS_BASE_URL
+        Vue.prototype.$chat_url = LOCAL_WS_BASE_URL
         Vue.prototype.$test_mode = true
       } else {
-        Vue.prototype.$server_url = 'https://gobackend.discussionexperiment.com/ccw/api/'
-        Vue.prototype.$ws_url = 'wss://gobackend.discussionexperiment.com/ws/chat/'
-        Vue.prototype.$chat_url = 'wss://gobackend.discussionexperiment.com/ws/chat/'
+        Vue.prototype.$server_url = PRODUCTION_API_BASE_URL
+        Vue.prototype.$ws_url = PRODUCTION_WS_BASE_URL
+        Vue.prototype.$chat_url = PRODUCTION_WS_BASE_URL
         Vue.prototype.$test_mode = false
       }
     },
